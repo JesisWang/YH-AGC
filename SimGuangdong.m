@@ -1,31 +1,31 @@
-% È«¾Ö±äÁ¿¶¨Òå
+% å…¨å±€å˜é‡å®šä¹‰
 clear
 tic
-global T             % È«¾ÖÊ±¼ä
-global lastPdg       % ÉÏÒ»Ê±¿ÌµÄ´¢ÄÜ³öÁ¦
-global lastPall      % ÉÏÒ»Ê±¿ÌµÄÁªºÏ³öÁ¦
+global T             % å…¨å±€æ—¶é—´
+global lastPdg       % ä¸Šä¸€æ—¶åˆ»çš„å‚¨èƒ½å‡ºåŠ›
+global lastPall      % ä¸Šä¸€æ—¶åˆ»çš„è”åˆå‡ºåŠ›
 global LastAgc
 global AgcStart
 global Pdg_record
 global flag
 global Rall
 global SigFM
-global T_fantiao     % ·´µ÷Ê±¼ä
-global T_butiao      % ²»µ÷Ê±¼ä
+global T_fantiao     % åè°ƒæ—¶é—´
+global T_butiao      % ä¸è°ƒæ—¶é—´
 global detP
 global detP_100
 global detP_0
 global Pvar
-%% µç³ØSOC-P-V-I¹ØÏµ
-load('D:\¿ØÖÆÏë·¨ÊµÑé\PV.mat')
+%% ç”µæ± SOC-P-V-Iå…³ç³»
+load('D:\æ§åˆ¶æƒ³æ³•å®éªŒ\PV.mat')
 KNAh = 40;Pmax =18;
-%%%strctÖĞº¬ÓĞ³äµçµçÑ¹¡¢³äµçSOCºÍ·ÅµçµçÑ¹ºÍ·ÅµçSOC%%%
-%% ²âÊÔ
-load('D:\¹ã¶«ÔÆºÓ\YHEMSdata.mat')
+%%%strctä¸­å«æœ‰å……ç”µç”µå‹ã€å……ç”µSOCå’Œæ”¾ç”µç”µå‹å’Œæ”¾ç”µSOC%%%
+%% æµ‹è¯•
+load('D:\å¹¿ä¸œäº‘æ²³\YHEMSdata.mat')
 data = YHdata.data0331;
-Agc = data(:,1);% AGCÖ¸Áî
-Pdg = data(:,2);% »ú×é³öÁ¦
-Pall3=data(:,3);% Êµ¼ÊµÄÁªºÏ³öÁ¦
+Agc = data(:,1);% AGCæŒ‡ä»¤
+Pdg = data(:,2);% æœºç»„å‡ºåŠ›
+Pall3=data(:,3);% å®é™…çš„è”åˆå‡ºåŠ›
 SigFM=0;
 Pdg_record=zeros(3600,1);
 LineMax=length(Agc);
@@ -54,7 +54,7 @@ for i=1:LineMax
     else
         lastSOC=SOC(i-1);
     end
-    % Êı¾İ¸üĞÂ
+    % æ•°æ®æ›´æ–°
     if i<=3600
         Pdg_record(i)=Pdg(i);
     else
@@ -63,12 +63,12 @@ for i=1:LineMax
             Pdg_record(3600)=Pdg(i);
         end
     end
-    [lastPbat,Status] = ControlMethod(Agc(i),Pdg(i),lastSOC);      % AGCËã·¨£¬»ª±±¡¢É½Î÷
+    [lastPbat,Status] = ControlMethod(Agc(i),Pdg(i),lastSOC);      % AGCç®—æ³•ï¼ŒååŒ—ã€å±±è¥¿
     Pbat(i) = lastPbat;
     Pall(i) = Pdg(i)+Pbat(i);
     SOC(i+1)=SOC(i)-lastPbat/3600*100/Emax;
 
-    % ×ÜÊı¾İ¸üĞÂ
+    % æ€»æ•°æ®æ›´æ–°
 %     if T==1
 %         if lastPbat>0
 %             SOC(i)=SOCini-lastPbat/3600*100/(Emax*3.07/3.2);
@@ -89,5 +89,5 @@ for i=1:LineMax
 end
 [Rall,RALL,M] = CalMoneyGD(Agc,Pall,Pbat,[0.7,0.3,4]);
 % Result=Rall;
-% Result=[k1 k2 k3 kp D Income/ÍòÔª µç³Ø³É±¾ ÄÜÁ¿]
+% Result=[k1 k2 k3 kp D Income/ä¸‡å…ƒ ç”µæ± æˆæœ¬ èƒ½é‡]
 toc
