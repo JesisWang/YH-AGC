@@ -1,5 +1,5 @@
-function [Rall,RALL,M]=CalMoneyGD(Agc,Pall,Pbat,F)%
-
+function [Rall,RALL]=CalMoneyGD(Agc,Pall,Pbat,F)%
+% F = [0.7,0.3,4]
 % if lastK1 == 0
 %     lastK1 = 1.7;
 % end
@@ -50,7 +50,6 @@ else
 end
 
 PALL = Pall(1);
-ctrl = 1;
 
 detAGC = 1.0*Prate/100; % detAGC是AGC指令变化的死区，死区内不算变化。0.5
 K3dead = 0.5*Prate/100; % K1指标用，机组功率达到新AGC指令的死区，目前取的0.5%机组额定功率。
@@ -77,7 +76,7 @@ VVn = [];
 scanRate = 1;
 for i=1:1:LineMax
     if ((mod(i,scanRate)==1)||(scanRate==1))
-        if (Agc(i) > detAGC+Result(ctrlNo,1)) ||  (Agc(i) < Result(ctrlNo,1)-detAGC)
+        if (Agc(i) > detAGC+Result(ctrlNo,1)) ||  (Agc(i) < Result(ctrlNo,1)-detAGC) && abs(Agc(i)-Agc(i+1))<0.5
             % ===========================AGC指令改变，指令合并情况=====================================
             if (((Agc(i)-Result(ctrlNo,2))* Result(ctrlNo,18)>0)...         % 1)指令调节方向相同 HB
                     &&((Agc(i)-Result(ctrlNo,1))* Result(ctrlNo,18)>0)...   % 2) 升出力更大，降出力更小
@@ -101,9 +100,30 @@ for i=1:1:LineMax
                     Result(ctrlNo,7) = 0;
                     Result(ctrlNo,8) = 0;
                     Result(ctrlNo,10) = 0;
+                    PALL = Pall(i);
                     Pvend = Va*Result(ctrlNo,1)+Vb*PALL;
-                    Result(ctrlNo,22:23) = 0;
+                    if Result(ctrlNo,23) == 0
+                        Result(ctrlNo,20:23) = 0;
+                    else
+                        if abs(Result(ctrlNo,22)-Result(ctrlNo,20))>K3dead && (Result(ctrlNo,23)-Result(ctrlNo,21))>Tconst
+                            if V1 ==0
+                                V1 = abs(Result(ctrlNo,22)-Result(ctrlNo,20))/(Result(ctrlNo,23)-Result(ctrlNo,21))*60;
+                            else
+                                V1 = [V1,abs(Result(ctrlNo,22)-Result(ctrlNo,20))/(Result(ctrlNo,23)-Result(ctrlNo,21))*60];
+                            end
+                        else
+                            if V1 == 0
+                                V1 = K1set;
+                            else
+                                V1 = [V1,K1set];
+                            end
+                        end
+                    end
                 end
+                Result(ctrlNo,20) = 0;
+                Result(ctrlNo,21) = 0;
+                Result(ctrlNo,22) = 0;
+                Result(ctrlNo,23) = 0;
            else
                 if ctrlNo == 1
                     Result(ctrlNo,:) = 0;
@@ -429,7 +449,7 @@ K3counter=0;
 %Dall = 0;
 for i=2:1:ctrlNo
     if i == ctrlNo
-        if Result(i,8)<3600
+        if Result(i,7)<3600
             if ((Result(i,9))>-1)
                 K1 = K1+Result(i,9);
                 K1counter=K1counter+1;
@@ -591,7 +611,7 @@ Rall(2)=K2;
 Rall(3)=K3;
 Rall(4)=KPall;
 Rall(5)=Dall;% *15
-Rall(6)=sum(abs(Pbat))*500;% 储能成本
+Rall(6)=sum(abs(Pbat));% 储能成本
 Rall(7)=Rall(5)-Rall(6);
 Rall(8)=Days;
 RALL(1)=K11;
@@ -599,4 +619,5 @@ RALL(2)=K22;
 RALL(3)=K33;
 RALL(4)=KKPall;
 lastK1 = K11;
+end
 % RALL
